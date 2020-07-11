@@ -1,0 +1,4 @@
+curl --header "Content-Type: application/json" \
+  --request POST \
+  --data '{"query":"xyz"}' \
+  http://localhost:8080
