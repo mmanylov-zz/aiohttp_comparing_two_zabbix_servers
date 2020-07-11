@@ -50,8 +50,8 @@ class ZabbixClient:
             async with ClientSession() as session:
                 async with session.post(url, json=get_zabbix_hosts_get_payload(self.auth_token)) as resp:
                     resp_json = await resp.json()
-                    if hasattr(resp_json, 'result') and len(resp_json.result) > 0:
-                        for host in resp_json.result:
+                    if len(resp_json.get('result')) > 0:
+                        for host in resp_json.get('result'):
                             host_data = {
                                 'hostid': host.get('hostid'),
                                 'host': host.get('host'),
