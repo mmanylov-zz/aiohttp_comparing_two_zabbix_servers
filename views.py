@@ -1,5 +1,5 @@
-from aiohttp import web, ClientSession
-from aiohttp.web import Request, Response
+from aiohttp import web
+from aiohttp.web import Request
 
 from zabbix import get_zabbix_clients, get_matching_hosts
 
@@ -12,11 +12,15 @@ def json_service(handler):
     return wrapper
 
 
-@json_service
-async def index(request_data: dict):
-        query = request_data.get('query')
+def json_response(handler):
+    async def wrapper(request: Request, *args, **kwargs):
+        response_data = await handler(request, *args, **kwargs)
+        return web.json_response(response_data)
+    return wrapper
+
+@json_response
+async def index(request):
         clients = await get_zabbix_clients()
-        hosts = list()
         for client in clients:
             client.hosts = await client.get_hosts()
 

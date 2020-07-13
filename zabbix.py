@@ -5,7 +5,7 @@ ZABBIX_URLS = [
     'http://0.0.0.0:2080/api_jsonrpc.php',
 ]
 
-ZABBIX_STANDARD_AUTH = {
+ZABBIX_STANDARD_AUTH_PAYLOAD = {
     "jsonrpc": "2.0",
     "method": "user.login",
     "params": {
@@ -60,7 +60,7 @@ class ZabbixClient:
                 return resp.get('result')
 
     async def authorize(self):
-        token = await self.call_api(ZABBIX_STANDARD_AUTH)
+        token = await self.call_api(ZABBIX_STANDARD_AUTH_PAYLOAD)
         if token:
             self.auth_token = token
 
@@ -112,14 +112,14 @@ async def get_matching_hosts(first_client, second_client):
             # провека имени и видимого имени хостов
             for attr_name in attributes_to_compare:
                 if fc_host.get(attr_name) == sc_host.get(attr_name):
-                    matching_hosts.append((attr_name, fc_host, sc_host))
+                    matching_hosts.append((fc_host, sc_host))
                     continue
 
             # проерка на совпадение ip интерфейсов
             for fc_ip in fc_host.get('ips'):
                 for sc_ip in sc_host.get('ips'):
                     if fc_ip == sc_ip:
-                        matching_hosts.append(('ip', fc_host, sc_host))
-                        continue
+                        matching_hosts.append((fc_host, sc_host))
+                        break
 
     return matching_hosts
