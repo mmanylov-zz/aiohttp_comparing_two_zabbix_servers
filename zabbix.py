@@ -2,7 +2,7 @@ from aiohttp import ClientSession
 
 ZABBIX_URLS = [
     'http://0.0.0.0:1080/api_jsonrpc.php',
-    # 'http://0.0.0.0:2080/api_jsonrpc.php',
+    'http://0.0.0.0:2080/api_jsonrpc.php',
 ]
 
 ZABBIX_STANDARD_AUTH = {
@@ -44,9 +44,11 @@ def get_zabbix_host_groups_payload(auth_token):
 class ZabbixClient:
     auth_token = None
     server_url = None
+    hosts = None
 
     def __init__(self, server_url):
         self.server_url = server_url
+        self.hosts = list()
 
     async def call_api(self, json_payload):
         async with ClientSession() as session:
@@ -80,6 +82,7 @@ class ZabbixClient:
             host_data['ips'] = ips
             hosts.append(host_data)
 
+        self.hosts = hosts
         return hosts
 
     async def get_host_groups(self):
@@ -99,3 +102,23 @@ async def get_zabbix_clients():
         clients.append(client)
 
     return clients
+
+
+async def get_matching_hosts(first_client, second_client):
+    atributes_to_compare = ['name', 'host']
+    matching_hosts = list()
+    for fc_host in first_client.hosts:
+        for sc_host in second_client.hosts:
+            # провека имени и видимого имени хостов
+            for attr_name in atributes_to_compare:
+                if fc_host.get(attr_name) == sc_host.get(attr_name):
+                    matching_hosts.append((attr_name, fc_host, sc_host))
+                    continue
+
+                # проерка на совпадение ip интерфейсов
+                for fc_ip in fc_host.get('ips'):
+                    for sc_ip in sc_host.get('ips'):
+                        if fc_ip == sc_ip:
+                            matching_hosts.append(('ip', fc_host, sc_host))
+                            continue
+    return matching_hosts

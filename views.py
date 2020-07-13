@@ -1,7 +1,7 @@
 from aiohttp import web, ClientSession
 from aiohttp.web import Request, Response
 
-from zabbix import get_zabbix_clients
+from zabbix import get_zabbix_clients, get_matching_hosts
 
 
 def json_service(handler):
@@ -16,6 +16,10 @@ def json_service(handler):
 async def index(request_data: dict):
         query = request_data.get('query')
         clients = await get_zabbix_clients()
+        hosts = list()
         for client in clients:
-            hosts = await client.get_hosts()
-        return hosts
+            client.hosts = await client.get_hosts()
+
+        matching_hosts = await get_matching_hosts(*clients)
+
+        return matching_hosts
