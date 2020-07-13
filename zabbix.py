@@ -69,9 +69,9 @@ class ZabbixClient:
         result = await self.call_api(get_zabbix_hosts_get_payload(self.auth_token))
         for host in result:
             host_data = {
-                'hostid': host.get('hostid'),
-                'host': host.get('host'),
-                'name': host.get('name'),
+                'host id': host.get('hostid'),
+                'host name': host.get('host'),
+                'visible host name': host.get('name'),
             }
 
             interfaces = host.get('interfaces')
@@ -79,7 +79,7 @@ class ZabbixClient:
             for interface in interfaces:
                 ips.append(interface.get('ip'))
 
-            host_data['ips'] = ips
+            host_data['interfaces'] = ips
             hosts.append(host_data)
 
         self.hosts = hosts
@@ -112,14 +112,20 @@ async def get_matching_hosts(first_client, second_client):
             # провека имени и видимого имени хостов
             for attr_name in attributes_to_compare:
                 if fc_host.get(attr_name) == sc_host.get(attr_name):
-                    matching_hosts.append((fc_host, sc_host))
+                    if fc_host not in matching_hosts:
+                        matching_hosts.append(fc_host)
+                    if sc_host not in matching_hosts:
+                        matching_hosts.append(sc_host)
                     continue
 
             # проерка на совпадение ip интерфейсов
-            for fc_ip in fc_host.get('ips'):
-                for sc_ip in sc_host.get('ips'):
+            for fc_ip in fc_host.get('interfaces'):
+                for sc_ip in sc_host.get('interfaces'):
                     if fc_ip == sc_ip:
-                        matching_hosts.append((fc_host, sc_host))
+                        if fc_host not in matching_hosts:
+                            matching_hosts.append(fc_host)
+                        if sc_host not in matching_hosts:
+                            matching_hosts.append(sc_host)
                         break
 
     return matching_hosts
