@@ -105,20 +105,21 @@ async def get_zabbix_clients():
 
 
 async def get_matching_hosts(first_client, second_client):
-    atributes_to_compare = ['name', 'host']
+    attributes_to_compare = ['name', 'host']
     matching_hosts = list()
     for fc_host in first_client.hosts:
         for sc_host in second_client.hosts:
             # провека имени и видимого имени хостов
-            for attr_name in atributes_to_compare:
+            for attr_name in attributes_to_compare:
                 if fc_host.get(attr_name) == sc_host.get(attr_name):
                     matching_hosts.append((attr_name, fc_host, sc_host))
                     continue
 
-                # проерка на совпадение ip интерфейсов
-                for fc_ip in fc_host.get('ips'):
-                    for sc_ip in sc_host.get('ips'):
-                        if fc_ip == sc_ip:
-                            matching_hosts.append(('ip', fc_host, sc_host))
-                            continue
+            # проерка на совпадение ip интерфейсов
+            for fc_ip in fc_host.get('ips'):
+                for sc_ip in sc_host.get('ips'):
+                    if fc_ip == sc_ip:
+                        matching_hosts.append(('ip', fc_host, sc_host))
+                        continue
+
     return matching_hosts
