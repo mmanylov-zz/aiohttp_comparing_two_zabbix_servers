@@ -29,6 +29,18 @@ def get_zabbix_hosts_get_payload(auth_token):
     }
 
 
+def get_zabbix_host_groups_payload(auth_token):
+    return {
+        "jsonrpc": "2.0",
+        "method": "hostgroup.get",
+        "params": {
+            "output": "extend",
+        },
+        "auth": auth_token,
+        "id": 3
+    }
+
+
 class ZabbixClient:
     auth_token = None
     server_url = None
@@ -40,6 +52,9 @@ class ZabbixClient:
         async with ClientSession() as session:
             async with session.post(self.server_url, json=json_payload) as resp:
                 resp = await resp.json()
+                error = resp.get('error')
+                if error:
+                    raise Exception(error.get('message'), error.get('data'))
                 return resp.get('result')
 
     async def authorize(self):
@@ -66,6 +81,9 @@ class ZabbixClient:
             hosts.append(host_data)
 
         return hosts
+
+    async def get_host_groups(self):
+        return await self.call_api(get_zabbix_host_groups_payload(self.auth_token))
 
 
 async def get_duplicate_hosts(hosts):
